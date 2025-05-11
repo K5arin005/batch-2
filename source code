@@ -1,45 +1,36 @@
-# Importing modules 
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from matplotlib import gridspec
+import re
+import string
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, accuracy_score
+from nltk.corpus import stopwords
+import nltk
 
-#read the dataset
-dataset = pd.read_csv("creditcarddetect.csv")
-# read the first 5 and last 5 rows of the data
-dataset.head().append(dataset.tail())
+# Download NLTK data (run only once)
+nltk.download('stopwords')
 
-# check for relative proportion 
-print("Fraudulent Cases: " + str(len(dataset[dataset["Class"] == 1])))
-print("Valid Transactions: " + str(len(dataset[dataset["Class"] == 0])))
-print("Proportion of Fraudulent Cases: " + str(len(dataset[dataset["Class"] == 1])/ dataset.shape[0]))
+# Load dataset
+import pandas as pd
 
-# To see how small are the number of Fraud transactions
-data_p = dataset.copy()
-data_p[" "] = np.where(data_p["Class"] == 1 , "Fraud", "Genuine")
+# **Update the path to the correct location of your file**
+df = pd.read_csv('/content/drive/MyDrive/sentimentdataset (1).csv')  
 
-# plot a pie chart
-data_p[" "].value_counts().plot(kind="pie")
+# Print the column names to inspect them
+print(df.columns)
 
-# plot the named features 
-f, axes = plt.subplots(1, 2, figsize=(18,4), sharex = True)
+# Assuming the sentiment label is in a column named 'sentiment'
+# Rename the column to 'label'
+if 'sentiment' in df.columns:  # Check if 'sentiment' column exists
+    df = df.rename(columns={'sentiment': 'label'})
+elif 'Sentiment' in df.columns:  # Check if 'Sentiment' column exists
+    df = df.rename(columns={'Sentiment': 'label'})
+# Add more elif blocks if you suspect other potential column names
 
-amount_value = dataset['Amount'].values # values
-time_value = dataset['Time'].values # values
+# Basic data inspection
+print("Dataset preview:")
+print(df.head())
+print("\nClass distribution:")
+print(df['label'].value_counts())
 
-sns.distplot(amount_value, hist=False, color="m", kde_kws={"shade": True}, ax=axes[0]).set_title('Distribution of Amount')
-sns.distplot(time_value, hist=False, color="m", kde_kws={"shade": True}, ax=axes[1]).set_title('Distribution of Time')
-
-plt.show()
-
-print("Average Amount in a Fraudulent Transaction: " + str(dataset[dataset["Class"] == 1]["Amount"].mean()))
-print("Average Amount in a Valid Transaction: " + str(dataset[dataset["Class"] == 0]["Amount"].mean()))
-
-print("Summary of the feature - Amount" + "\n-------------------------------")
-print(dataset["Amount"].describe())
-
-# check for null values 
-dataset.isnull().shape[0]
-print("Non-missing values: " + str(dataset.isnull().shape[0]))
-print("Missing values: " + str(dataset.shape[0] - dataset.isnull().shape[0]))
